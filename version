@@ -1,1 +1,143 @@
-0.02
+local function LogInfoColor(message, color)
+    if Logger and Logger.Log then
+        Logger.Log(color or 0, "SafeMoneyLua", message)
+    elseif Logger and Logger.LogInfo then
+        Logger.LogInfo(message)
+    elseif SilentLogger and SilentLogger.LogInfo then
+        SilentLogger.LogInfo(message)
+    else
+        print(message)
+    end
+end
+
+local function LogInfoGreen(message)
+    LogInfoColor(message, (eLogColor and eLogColor.LIGHTGREEN) or 0)
+end
+
+local function LogInfoYellow(message)
+    LogInfoColor(message, (eLogColor and eLogColor.YELLOW) or 0)
+end
+
+local function LogInfoPink(message)
+    LogInfoColor(message, (eLogColor and eLogColor.LIGHTMAGENTA) or 0)
+end
+
+LogInfoYellow("Ток анлоадни все скрипты чтобы корректно запустилось")
+LogInfoGreen("через вкладку LUA Editor --> Stop ALL SCRIPTS")
+LogInfoPink("пам пам пам скрипт загрузился")
+LogInfoGreen("кстати могут быть ошибки так что я хуй знает если что скидывай логи желательно текстов <3")
+
+--#region EasyMoneyOnly
+
+local function J(value)
+    if Utils and Utils.Joaat then
+        return Utils.Joaat(value)
+    end
+
+    local hash = 0
+    for i = 1, #value do
+        hash = hash + value:byte(i)
+        hash = hash + ((hash << 10) & 0xFFFFFFFF)
+        hash = hash ~ (hash >> 6)
+    end
+    hash = hash + ((hash << 3) & 0xFFFFFFFF)
+    hash = hash ~ (hash >> 11)
+    hash = hash + ((hash << 15) & 0xFFFFFFFF)
+    return hash & 0xFFFFFFFF
+end
+
+EasyMoney = {
+    Instant = {
+        Give30m = {
+            hash = J("SN_EasyMoney_30m"),
+            name = "Give 30mil [BETA]",
+            type = (eFeatureType and eFeatureType.Button) or 0,
+            desc = "Честно говоря хуй знает надо ли оно!",
+            func = function()
+                if CONFIG and CONFIG.easy_money and not CONFIG.easy_money.acknowledge then
+                    if SilentLogger and SilentLogger.LogError then
+                        SilentLogger.LogError("[Give 30mil писос ошибка хз какая1")
+                    end
+                    return
+                end
+
+                if not (GTA and GTA.TriggerTransaction) then
+                    if SilentLogger and SilentLogger.LogError then
+                        SilentLogger.LogError("[Give 30mil писос ошибка хз какая1 транзактион унавелебел")
+                    end
+                    return
+                end
+
+                GTA.TriggerTransaction(0xA174F633)
+                Script.Yield(3000)
+                GTA.TriggerTransaction(0xED97AFC1)
+                Script.Yield(3000)
+                GTA.TriggerTransaction(0x176D9D54)
+                Script.Yield(3000)
+                GTA.TriggerTransaction(0x4B6A869C)
+                Script.Yield(3000)
+                GTA.TriggerTransaction(0x921FCF3C)
+                Script.Yield(3000)
+                GTA.TriggerTransaction(0x314FB8B0)
+
+                if SilentLogger and SilentLogger.LogInfo then
+                    if eToastPos then
+                        SilentLogger.LogInfo("30мил хас бенд гивед", eToastPos.BOTTOM_RIGHT)
+                    else
+                        SilentLogger.LogInfo("30мил хас бенд гивед дублирую  влоги хз зачем")
+                    end
+                end
+            end
+        }
+    }
+}
+
+local function AddFeature(hash, name, desc, callback, ftype)
+    local ftypeToUse = ftype or ((eFeatureType and eFeatureType.Button) or 0)
+    if _AddFeature then
+        _AddFeature(hash, name, ftypeToUse, desc, callback)
+    elseif FeatureMgr and FeatureMgr.AddFeature then
+        FeatureMgr.AddFeature(hash, name, ftypeToUse, desc, callback)
+    end
+end
+
+local function AddTabFeature(tab, hash)
+    if _addFeature then
+        _addFeature(tab, hash)
+    elseif tab and tab.AddFeature then
+        tab:AddFeature(hash)
+    end
+end
+
+AddFeature(
+    EasyMoney.Instant.Give30m.hash,
+    EasyMoney.Instant.Give30m.name,
+    EasyMoney.Instant.Give30m.desc,
+    EasyMoney.Instant.Give30m.func,
+    EasyMoney.Instant.Give30m.type
+)
+
+if ClickGUI and ClickGUI.AddTab then
+    local function RenderEasyMoneyClickGUI()
+        if ClickGUI.BeginCustomChildWindow("?") then
+            ClickGUI.RenderFeature(EasyMoney.Instant.Give30m.hash)
+            ClickGUI.EndCustomChildWindow()
+        end
+    end
+
+    ClickGUI.AddTab("SafeMoneyLua", RenderEasyMoneyClickGUI)
+end
+
+if ListGUI and ListGUI.GetRootTab then
+    local root = ListGUI.GetRootTab()
+    if root then
+        local easyMoneyTab = root:AddSubTab("SafeMoneyLua", "?")
+        if easyMoneyTab then
+            AddTabFeature(easyMoneyTab, EasyMoney.Instant.Give30m.hash)
+        end
+    end
+end
+
+--#endregion
+
+
